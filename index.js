@@ -7,6 +7,19 @@ const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const RMIS_CLIENT_ID = process.env.RMIS_CLIENT_ID;
 const RMIS_PASSWORD = process.env.RMIS_PASSWORD;
 
+// TEMPORARY DEBUG — REMOVE AFTER TESTING
+app.get('/debug', async (req, res) => {
+  if (req.query.token !== ACCESS_TOKEN) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  res.json({
+    hasClientID: !!RMIS_CLIENT_ID,
+    hasPassword: !!RMIS_PASSWORD,
+    clientIDLength: RMIS_CLIENT_ID ? RMIS_CLIENT_ID.length : 0,
+    passwordLength: RMIS_PASSWORD ? RMIS_PASSWORD.length : 0
+  });
+});
+
 // ── FMCSA PROXY ──────────────────────────────────────────────
 app.get('/fmcsa', async (req, res) => {
   if (req.query.token !== ACCESS_TOKEN) {
