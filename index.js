@@ -7,20 +7,6 @@ const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const RMIS_CLIENT_ID = process.env.RMIS_CLIENT_ID;
 const RMIS_PASSWORD = process.env.RMIS_PASSWORD;
 
-// TEMPORARY DEBUG 1
-app.get('/debug', async (req, res) => {
-  if (req.query.token !== ACCESS_TOKEN) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  res.json({
-    hasClientID: !!RMIS_CLIENT_ID,
-    hasPassword: !!RMIS_PASSWORD,
-    clientIDLength: RMIS_CLIENT_ID ? RMIS_CLIENT_ID.length : 0,
-    passwordLength: RMIS_PASSWORD ? RMIS_PASSWORD.length : 0
-  });
-});
-
-// TEMPORARY DEBUG 2
 app.get('/debug2', async (req, res) => {
   if (req.query.token !== ACCESS_TOKEN) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -36,17 +22,13 @@ app.get('/debug2', async (req, res) => {
   }
 });
 
-// ── FMCSA PROXY ──────────────────────────────────────────────
 app.get('/fmcsa', async (req, res) => {
   if (req.query.token !== ACCESS_TOKEN) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-
   const { dotNumber, endpoint } = req.query;
   if (!dotNumber) return res.status(400).json({ error: 'dotNumber required' });
-
   const url = `https://mobile.fmcsa.dot.gov/qc/services/carriers/${dotNumber}${endpoint ? '/' + endpoint : ''}?webKey=${FMCSA_WEB_KEY}`;
-
   try {
     const response = await fetch(url, {
       headers: {
@@ -61,18 +43,14 @@ app.get('/fmcsa', async (req, res) => {
   }
 });
 
-// ── RMIS EXPANDED CARRIER API ─────────────────────────────────
 app.get('/rmis/carrier', async (req, res) => {
   if (req.query.token !== ACCESS_TOKEN) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-
   const { queryID, queryType } = req.query;
   if (!queryID) return res.status(400).json({ error: 'queryID required' });
-  if (!queryType) return res.status(400).json({ error: 'queryType required (MC, DOT, or RMISID)' });
-
+  if (!queryType) return res.status(400).json({ error: 'queryType required' });
   const url = `https://api.rmissecure.com/_c/std/api/ExpandedCarrierAPI.aspx?clientID=${RMIS_CLIENT_ID}&password=${encodeURIComponent(RMIS_PASSWORD)}&QueryID=${queryID}&QueryType=${queryType}&Version=4`;
-
   try {
     const response = await fetch(url);
     const text = await response.text();
@@ -83,18 +61,14 @@ app.get('/rmis/carrier', async (req, res) => {
   }
 });
 
-// ── RMIS NON-ATTACHED CARRIER API ────────────────────────────
 app.get('/rmis/lookup', async (req, res) => {
   if (req.query.token !== ACCESS_TOKEN) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-
   const { queryID, queryType } = req.query;
   if (!queryID) return res.status(400).json({ error: 'queryID required' });
-  if (!queryType) return res.status(400).json({ error: 'queryType required (MC, DOT, or RMISID)' });
-
+  if (!queryType) return res.status(400).json({ error: 'queryType required' });
   const url = `https://api.rmissecure.com/_c/std/api/NonAttachedCarrierStatusRequestAPI.aspx?clientID=${RMIS_CLIENT_ID}&password=${encodeURIComponent(RMIS_PASSWORD)}&QueryID=${queryID}&QueryType=${queryType}&Version=4`;
-
   try {
     const response = await fetch(url);
     const text = await response.text();
@@ -105,17 +79,13 @@ app.get('/rmis/lookup', async (req, res) => {
   }
 });
 
-// ── RMIS DOCUMENT API ─────────────────────────────────────────
 app.get('/rmis/document', async (req, res) => {
   if (req.query.token !== ACCESS_TOKEN) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-
   const { insdID, documentID, documentType } = req.query;
   if (!insdID) return res.status(400).json({ error: 'insdID required' });
-
   const url = `https://api.rmissecure.com/_c/std/api/DocumentAPI.aspx?clientID=${RMIS_CLIENT_ID}&password=${encodeURIComponent(RMIS_PASSWORD)}&insdID=${insdID}&documentID=${documentID || ''}&documentType=${documentType || 'COI'}&Version=4`;
-
   try {
     const response = await fetch(url);
     const text = await response.text();
