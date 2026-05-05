@@ -42,7 +42,7 @@ app.get('/rmis/carrier', async (req, res) => {
   if (!queryID) return res.status(400).json({ error: 'queryID required' });
   if (!queryType) return res.status(400).json({ error: 'queryType required (MC, DOT, or RMISID)' });
 
-  const url = `https://api.rmissecure.com/_c/std/api/ExpandedCarrierAPI.aspx?clientID=${RMIS_CLIENT_ID}&password=${RMIS_PASSWORD}&QueryID=${queryID}&QueryType=${queryType}&Version=4`;
+  const url = `https://api.rmissecure.com/_c/std/api/ExpandedCarrierAPI.aspx?clientID=${RMIS_CLIENT_ID}&password=${encodeURIComponent(RMIS_PASSWORD)}&QueryID=${queryID}&QueryType=${queryType}&Version=4`;
 
   try {
     const response = await fetch(url);
@@ -64,7 +64,7 @@ app.get('/rmis/lookup', async (req, res) => {
   if (!queryID) return res.status(400).json({ error: 'queryID required' });
   if (!queryType) return res.status(400).json({ error: 'queryType required (MC, DOT, or RMISID)' });
 
-  const url = `https://api.rmissecure.com/_c/std/api/NonAttachedCarrierStatusRequestAPI.aspx?clientID=${RMIS_CLIENT_ID}&password=${RMIS_PASSWORD}&QueryID=${queryID}&QueryType=${queryType}&Version=4`;
+  const url = `https://api.rmissecure.com/_c/std/api/NonAttachedCarrierStatusRequestAPI.aspx?clientID=${RMIS_CLIENT_ID}&password=${encodeURIComponent(RMIS_PASSWORD)}&QueryID=${queryID}&QueryType=${queryType}&Version=4`;
 
   try {
     const response = await fetch(url);
@@ -85,7 +85,7 @@ app.get('/rmis/document', async (req, res) => {
   const { insdID, documentID, documentType } = req.query;
   if (!insdID) return res.status(400).json({ error: 'insdID required' });
 
-  const url = `https://api.rmissecure.com/_c/std/api/DocumentAPI.aspx?clientID=${RMIS_CLIENT_ID}&password=${RMIS_PASSWORD}&insdID=${insdID}&documentID=${documentID || ''}&documentType=${documentType || 'COI'}&Version=4`;
+  const url = `https://api.rmissecure.com/_c/std/api/DocumentAPI.aspx?clientID=${RMIS_CLIENT_ID}&password=${encodeURIComponent(RMIS_PASSWORD)}&insdID=${insdID}&documentID=${documentID || ''}&documentType=${documentType || 'COI'}&Version=4`;
 
   try {
     const response = await fetch(url);
