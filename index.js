@@ -19,6 +19,32 @@ app.get('/debug', async (req, res) => {
     passwordLength: RMIS_PASSWORD ? RMIS_PASSWORD.length : 0
   });
 });
+const RMIS_PASSWORD = process.env.RMIS_PASSWORD;
+
+// TEMPORARY DEBUG 1
+app.get('/debug', async (req, res) => {
+  ...
+});
+
+// TEMPORARY DEBUG 2 — REMOVE AFTER TESTING
+app.get('/debug2', async (req, res) => {
+  if (req.query.token !== ACCESS_TOKEN) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  const testUrl = `https://api.rmissecure.com/_c/std/api/ExpandedCarrierAPI.aspx?clientID=${RMIS_CLIENT_ID}&password=${encodeURIComponent(RMIS_PASSWORD)}&QueryID=974395&QueryType=MC&Version=4`;
+  try {
+    const response = await fetch(testUrl);
+    const text = await response.text();
+    res.set('Content-Type', 'application/xml');
+    res.send(text);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── FMCSA PROXY ──────────────────────────────────────────────
+app.get('/fmcsa', async (req, res) => {
+  ...
 
 // ── FMCSA PROXY ──────────────────────────────────────────────
 app.get('/fmcsa', async (req, res) => {
