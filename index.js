@@ -7,7 +7,7 @@ const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const RMIS_CLIENT_ID = process.env.RMIS_CLIENT_ID;
 const RMIS_PASSWORD = process.env.RMIS_PASSWORD;
 
-// TEMPORARY DEBUG — REMOVE AFTER TESTING
+// TEMPORARY DEBUG 1
 app.get('/debug', async (req, res) => {
   if (req.query.token !== ACCESS_TOKEN) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -19,14 +19,8 @@ app.get('/debug', async (req, res) => {
     passwordLength: RMIS_PASSWORD ? RMIS_PASSWORD.length : 0
   });
 });
-const RMIS_PASSWORD = process.env.RMIS_PASSWORD;
 
-// TEMPORARY DEBUG 1
-app.get('/debug', async (req, res) => {
-  ...
-});
-
-// TEMPORARY DEBUG 2 — REMOVE AFTER TESTING
+// TEMPORARY DEBUG 2
 app.get('/debug2', async (req, res) => {
   if (req.query.token !== ACCESS_TOKEN) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -41,10 +35,6 @@ app.get('/debug2', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-// ── FMCSA PROXY ──────────────────────────────────────────────
-app.get('/fmcsa', async (req, res) => {
-  ...
 
 // ── FMCSA PROXY ──────────────────────────────────────────────
 app.get('/fmcsa', async (req, res) => {
