@@ -2,10 +2,14 @@ const express = require('express');
 const fetch = require('node-fetch');
 const app = express();
 
+app.use(express.json());
+
 const FMCSA_WEB_KEY = process.env.FMCSA_WEB_KEY;
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const RMIS_CLIENT_ID = process.env.RMIS_CLIENT_ID;
 const RMIS_PASSWORD = process.env.RMIS_PASSWORD;
+const FEDEX_CLIENT_ID = process.env.FEDEX_CLIENT_ID;
+const FEDEX_CLIENT_SECRET = process.env.FEDEX_CLIENT_SECRET;
 
 // ── FMCSA PROXY ──────────────────────────────────────────────
 app.get('/fmcsa', async (req, res) => {
@@ -98,6 +102,73 @@ app.get('/rmis/document', async (req, res) => {
     const text = await response.text();
     res.set('Content-Type', 'application/xml');
     res.send(text);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── FEDEX FREIGHT - OAuth Token ───────────────────────────────
+// POST /fedex/token
+// No body required — uses env vars FEDEX_CLIENT_ID and FEDEX_CLIENT_SECRET
+app.post('/fedex/token', async (req, res) => {
+  if (req.query.token !== ACCESS_TOKEN) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const clientId = FEDEX_CLIENT_ID;
+  const clientSecret = FEDEX_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    return res.status(500).json({ error: 'FedEx credentials not configured on proxy' });
+  }
+
+  try {
+    const response = await fetch('https://apis.fedex.com/oauth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `grant_type=client_credentials&client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}`
+    });
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── FEDEX FREIGHT - Track by Tracking Number ──────────────────
+// POST /fedex/track
+// Body: { accessToken: string, trackingInfo: [{ trackingNumber: string, carrierCode: string }] }
+app.post('/fedex/track', async (req, res) => {
+  if (req.query.token !== ACCESS_TOKEN) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { accessToken, trackingInfo } = req.body;
+  if (!accessToken) return res.status(400).json({ error: 'accessToken required in body' });
+  if (!trackingInfo || !Array.isArray(trackingInfo) || trackingInfo.length === 0) {
+    return res.status(400).json({ error: 'trackingInfo array required in body' });
+  }
+
+  try {
+    const response = await fetch('https://apis.fedex.com/track/v1/trackingnumbers', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+        'x-locale': 'en_US'
+      },
+      body: JSON.stringify({
+        includeDetailedScans: false,
+        trackingInfo: trackingInfo.map(t => ({
+          trackNumberInfo: {
+            trackingNumber: t.trackingNumber,
+            carrierCode: t.carrierCode || 'FXFR'
+          }
+        }))
+      })
+    });
+    const data = await response.json();
+    res.status(response.status).json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
