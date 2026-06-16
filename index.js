@@ -173,7 +173,6 @@ app.post('/fedex/track', async (req, res) => {
 
 // ── A. DUIE PYLE TRACKING PROXY ───────────────────────────────
 // GET /pyle?token=...&type=0&value=716925383
-// type: 0=PRO, 1=BOL (requires &zip=origin-zip), 2=partner PRO (requires &partner=SCAC), 4=PO (requires &zip=dest-zip)
 app.get('/pyle', async (req, res) => {
   if (req.query.token !== ACCESS_TOKEN) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -195,6 +194,51 @@ app.get('/pyle', async (req, res) => {
     });
     const text = await response.text();
     res.set('Content-Type', response.headers.get('content-type') || 'application/xml');
+    res.status(response.status).send(text);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── BEST OVERNITE (BTVP) TRACKING PROXY ──────────────────────
+// POST /btvp?token=...
+// Body: { proNumber: "450845060" }
+app.post('/btvp', async (req, res) => {
+  if (req.query.token !== ACCESS_TOKEN) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { proNumber } = req.body;
+  if (!proNumber) return res.status(400).json({ error: 'proNumber required' });
+
+  const soapBody = `<?xml version="1.0" encoding="utf-8"?>
+<soapenv:Envelope
+  xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:tns="http://tgif.bestovernite.com/">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <tns:TrackTrace>
+      <SecurityInfo>
+        <Username>DTSONE</Username>
+        <Password>1928one</Password>
+      </SecurityInfo>
+      <ProNumber>${proNumber}</ProNumber>
+    </tns:TrackTrace>
+  </soapenv:Body>
+</soapenv:Envelope>`;
+
+  try {
+    const response = await fetch('http://tgif.bestovernite.com:10032/web/services/TTRACKAPIService/TTRACKAPI', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/xml; charset=utf-8',
+        'SOAPAction': 'TrackTrace',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      },
+      body: soapBody
+    });
+    const text = await response.text();
+    res.set('Content-Type', 'application/xml');
     res.status(response.status).send(text);
   } catch (err) {
     res.status(500).json({ error: err.message });
