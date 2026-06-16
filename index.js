@@ -312,7 +312,7 @@ app.post('/numark', async (req, res) => {
 </soapenv:Envelope>`;
 
   try {
-    const response = await fetch('http://wsrq.numarkfreight.com:10044/web/services/TTrackAPIService/TTrackAPI', {
+    const response = await fetch('http://tracking.numarktransportation.net:10010/web/services/TTRACKAPIService/TTRACKAPI', {
       method: 'POST',
       headers: {
         'Content-Type': 'text/xml; charset=utf-8',
@@ -328,7 +328,6 @@ app.post('/numark', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
 
 // ── WSDL FETCH UTILITY ───────────────────────────────────────
 // GET /wsdl?token=...&url=http://...
