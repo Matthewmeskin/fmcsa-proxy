@@ -214,16 +214,26 @@ app.post('/btvp', async (req, res) => {
   const soapBody = `<?xml version="1.0" encoding="utf-8"?>
 <soapenv:Envelope
   xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-  xmlns:tns="http://tgif.bestovernite.com/">
+  xmlns:tns="http://ttrackapi.wsbeans.iseries/">
   <soapenv:Header/>
   <soapenv:Body>
-    <tns:TrackTrace>
-      <SecurityInfo>
-        <Username>DTSONE</Username>
-        <Password>1928one</Password>
-      </SecurityInfo>
-      <ProNumber>${proNumber}</ProNumber>
-    </tns:TrackTrace>
+    <tns:tracktrace>
+      <arg0>
+        <SECURITYINFO>
+          <USERNAME>DTSONE</USERNAME>
+          <PASSWORD>1928one</PASSWORD>
+        </SECURITYINFO>
+        <PRONUMBER>${proNumber}</PRONUMBER>
+        <CURRENTSTATUS>
+          <CONSIGNEE><ADDRESS1/><ADDRESS2/><CITY/><NAME/><STATE/><ZIP/></CONSIGNEE>
+          <DELIVERYDATE/><ERRORCODE/><ESTDELIVERYDATE/><SHIPDATE/>
+          <SHIPPER><ADDRESS1/><ADDRESS2/><CITY/><NAME/><STATE/><ZIP/></SHIPPER>
+          <SIGNEDBY/><STATUS/>
+        </CURRENTSTATUS>
+        <HISTORY><DATE/><DESCRIPTION/><LOCATION/><TIME/></HISTORY>
+        <HISTORYCOUNT>0</HISTORYCOUNT>
+      </arg0>
+    </tns:tracktrace>
   </soapenv:Body>
 </soapenv:Envelope>`;
 
@@ -232,7 +242,7 @@ app.post('/btvp', async (req, res) => {
       method: 'POST',
       headers: {
         'Content-Type': 'text/xml; charset=utf-8',
-        'SOAPAction': 'TrackTrace',
+        'SOAPAction': '',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       },
       body: soapBody
