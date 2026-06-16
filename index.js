@@ -255,6 +255,34 @@ app.post('/btvp', async (req, res) => {
   }
 });
 
+
+// ── CTBV (CustomCo/Carrier Logistics) TRACKING PROXY ─────────
+// GET /ctbv?token=...&pronum=12345
+app.get('/ctbv', async (req, res) => {
+  if (req.query.token !== ACCESS_TOKEN) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { pronum } = req.query;
+  if (!pronum) return res.status(400).json({ error: 'pronum required' });
+
+  const url = `https://factsweb.customco.com/protracexml.htm?xmluser=divtr02&xmlpass=Dts0ne!23@&pronum=${encodeURIComponent(pronum)}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/xml, text/xml, */*',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    });
+    const text = await response.text();
+    res.set('Content-Type', response.headers.get('content-type') || 'application/xml');
+    res.status(response.status).send(text);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(process.env.PORT || 3000, () => {
   console.log('DTS proxy server running');
 });
