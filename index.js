@@ -283,6 +283,62 @@ app.get('/ctbv', async (req, res) => {
   }
 });
 
+
+// ── NUMARK (NUMK) TRACKING PROXY ─────────────────────────────
+// POST /numark?token=...
+// Body: { proNumber: "12345" }
+app.post('/numark', async (req, res) => {
+  if (req.query.token !== ACCESS_TOKEN) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { proNumber } = req.body;
+  if (!proNumber) return res.status(400).json({ error: 'proNumber required' });
+
+  const soapBody = `<?xml version="1.0" encoding="utf-8"?>
+<soapenv:Envelope
+  xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:tns="http://ttrackapi.wsbeans.iseries/">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <tns:tracktrace>
+      <arg0>
+        <SECURITYINFO>
+          <USERNAME>DTSAPI</USERNAME>
+          <PASSWORD>BROKER</PASSWORD>
+        </SECURITYINFO>
+        <PRONUMBER>${proNumber}</PRONUMBER>
+        <CURRENTSTATUS>
+          <CONSIGNEE><ADDRESS1/><ADDRESS2/><CITY/><NAME/><STATE/><ZIP/></CONSIGNEE>
+          <DELIVERYDATE/><ERRORCODE/><ESTDELIVERYDATE/><SHIPDATE/>
+          <SHIPPER><ADDRESS1/><ADDRESS2/><CITY/><NAME/><STATE/><ZIP/></SHIPPER>
+          <SIGNEDBY/><STATUS/>
+        </CURRENTSTATUS>
+        <HISTORY><DATE/><DESCRIPTION/><LOCATION/><TIME/></HISTORY>
+        <HISTORYCOUNT>0</HISTORYCOUNT>
+      </arg0>
+    </tns:tracktrace>
+  </soapenv:Body>
+</soapenv:Envelope>`;
+
+  try {
+    const response = await fetch('http://tracking.numarktransportation.net:10010/web/services/TTRACKAPI', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/xml; charset=utf-8',
+        'SOAPAction': '',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      },
+      body: soapBody
+    });
+    const text = await response.text();
+    res.set('Content-Type', 'application/xml');
+    res.status(response.status).send(text);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(process.env.PORT || 3000, () => {
   console.log('DTS proxy server running');
 });
