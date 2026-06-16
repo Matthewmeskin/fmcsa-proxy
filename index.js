@@ -391,6 +391,45 @@ app.post('/ward', async (req, res) => {
   }
 });
 
+
+// ── OAK HARBOR FREIGHT (OAKH) TRACKING PROXY ─────────────────
+// POST /oakh?token=...
+// Body: { proNumber: "12345678" }
+app.post('/oakh', async (req, res) => {
+  if (req.query.token !== ACCESS_TOKEN) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { proNumber } = req.body;
+  if (!proNumber) return res.status(400).json({ error: 'proNumber required' });
+
+  const soapBody = `<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://www.oakh.com/services/soap?wsdl">
+  <SOAP-ENV:Body>
+    <ns1:getShipmentInfo>
+      <pro>${proNumber}</pro>
+    </ns1:getShipmentInfo>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>`;
+
+  try {
+    const response = await fetch('http://www.oakh.com/services/soap', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/xml; charset=utf-8',
+        'SOAPAction': 'http://www.oakh.com/services/soap#getShipmentInfo',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      },
+      body: soapBody
+    });
+    const text = await response.text();
+    res.set('Content-Type', 'application/xml');
+    res.status(response.status).send(text);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(process.env.PORT || 3000, () => {
   console.log('DTS proxy server running');
 });
