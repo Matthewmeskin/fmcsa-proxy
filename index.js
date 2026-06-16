@@ -302,23 +302,23 @@ app.post('/numark', async (req, res) => {
   <soapenv:Header/>
   <soapenv:Body>
     <tns:tracktrace>
-      <arg0>
-        <SECURITYINFO>
-          <USERNAME>DTSAPI</USERNAME>
-          <PASSWORD>BROKER</PASSWORD>
-        </SECURITYINFO>
+      <args0>
         <PRONUMBER>${proNumber}</PRONUMBER>
-      </arg0>
+        <SECURITYINFO>
+          <PASSWORD>BROKER</PASSWORD>
+          <USERNAME>DTSAPI</USERNAME>
+        </SECURITYINFO>
+      </args0>
     </tns:tracktrace>
   </soapenv:Body>
 </soapenv:Envelope>`;
 
   try {
-    const response = await fetch('http://tracking.numarktransportation.net:10010/web/services/TTRACKAPI', {
+    const response = await fetch('http://tracking.numarktransportation.net:10010/web/services/TTRACKAPIService/TTRACKAPI', {
       method: 'POST',
       headers: {
         'Content-Type': 'text/xml; charset=utf-8',
-        'SOAPAction': '',
+        'SOAPAction': 'urn:tracktrace',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       },
       body: soapBody
