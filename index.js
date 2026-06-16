@@ -331,6 +331,25 @@ app.post('/numark', async (req, res) => {
   }
 });
 
+
+// ── WSDL FETCH UTILITY ───────────────────────────────────────
+// GET /wsdl?token=...&url=http://...
+app.get('/wsdl', async (req, res) => {
+  if (req.query.token !== ACCESS_TOKEN) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  const { url } = req.query;
+  if (!url) return res.status(400).json({ error: 'url required' });
+  try {
+    const response = await fetch(url);
+    const text = await response.text();
+    res.set('Content-Type', 'text/xml');
+    res.send(text);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(process.env.PORT || 3000, () => {
   console.log('DTS proxy server running');
 });
