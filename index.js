@@ -296,29 +296,27 @@ app.post('/numark', async (req, res) => {
   if (!proNumber) return res.status(400).json({ error: 'proNumber required' });
 
   const soapBody = `<?xml version="1.0" encoding="utf-8"?>
-<soapenv:Envelope
-  xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-  xmlns:tns="http://ttrackapi.wsbeans.iseries/xsd">
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://ttrackapi.wsbeans.iseries/xsd">
   <soapenv:Header/>
   <soapenv:Body>
-    <tns:tracktrace>
-      <args0>
-        <PRONUMBER>${proNumber}</PRONUMBER>
-        <SECURITYINFO>
-          <PASSWORD>BROKER</PASSWORD>
-          <USERNAME>DTSAPI</USERNAME>
-        </SECURITYINFO>
-      </args0>
-    </tns:tracktrace>
+    <xsd:tracktrace>
+      <xsd:args0>
+        <xsd:PRONUMBER>${proNumber}</xsd:PRONUMBER>
+        <xsd:SECURITYINFO>
+          <xsd:PASSWORD>broker</xsd:PASSWORD>
+          <xsd:USERNAME>DTSAPI</xsd:USERNAME>
+        </xsd:SECURITYINFO>
+      </xsd:args0>
+    </xsd:tracktrace>
   </soapenv:Body>
 </soapenv:Envelope>`;
 
   try {
-    const response = await fetch('http://tracking.numarktransportation.net:10010/web/services/TTRACKAPIService/TTRACKAPI', {
+    const response = await fetch('http://wsrq.numarkfreight.com:10044/web/services/TTrackAPIService/TTrackAPI', {
       method: 'POST',
       headers: {
         'Content-Type': 'text/xml; charset=utf-8',
-        'SOAPAction': 'urn:tracktrace',
+        'SOAPAction': '',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       },
       body: soapBody
