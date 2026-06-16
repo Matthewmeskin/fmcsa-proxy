@@ -350,6 +350,47 @@ app.get('/wsdl', async (req, res) => {
   }
 });
 
+
+// ── WARD TRANSPORT TRACKING PROXY ────────────────────────────
+// POST /ward?token=...
+// Body: { freightBill: "028-0741087", freightBillType: "WARDPRO" }
+app.post('/ward', async (req, res) => {
+  if (req.query.token !== ACCESS_TOKEN) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { freightBill, freightBillType } = req.body;
+  if (!freightBill) return res.status(400).json({ error: 'freightBill required' });
+
+  const payload = {
+    body: {
+      request: {
+        freightBill: freightBill,
+        freightBillType: freightBillType || 'WARDPRO',
+        bopoNumber: '',
+        bopoNumberType: '',
+        oZip: ''
+      }
+    }
+  };
+
+  try {
+    const response = await fetch('https://wardtlctools.com/wardtrucking/webservices/traceshipmentv3', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Basic ZHRzcWE6cWExOTgyOQ==',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(process.env.PORT || 3000, () => {
   console.log('DTS proxy server running');
 });
