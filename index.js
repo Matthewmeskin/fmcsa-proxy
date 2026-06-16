@@ -10,6 +10,7 @@ const RMIS_CLIENT_ID = process.env.RMIS_CLIENT_ID;
 const RMIS_PASSWORD = process.env.RMIS_PASSWORD;
 const FEDEX_CLIENT_ID = process.env.FEDEX_CLIENT_ID;
 const FEDEX_CLIENT_SECRET = process.env.FEDEX_CLIENT_SECRET;
+const PYLE_USER = process.env.PYLE_USER || 'dtsdispatch@dtsone.com';
 
 // ── FMCSA PROXY ──────────────────────────────────────────────
 app.get('/fmcsa', async (req, res) => {
@@ -108,8 +109,6 @@ app.get('/rmis/document', async (req, res) => {
 });
 
 // ── FEDEX FREIGHT - OAuth Token ───────────────────────────────
-// POST /fedex/token
-// No body required — uses env vars FEDEX_CLIENT_ID and FEDEX_CLIENT_SECRET
 app.post('/fedex/token', async (req, res) => {
   if (req.query.token !== ACCESS_TOKEN) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -136,8 +135,6 @@ app.post('/fedex/token', async (req, res) => {
 });
 
 // ── FEDEX FREIGHT - Track by Tracking Number ──────────────────
-// POST /fedex/track
-// Body: { accessToken: string, trackingInfo: [{ trackingNumber: string, carrierCode: string }] }
 app.post('/fedex/track', async (req, res) => {
   if (req.query.token !== ACCESS_TOKEN) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -169,6 +166,36 @@ app.post('/fedex/track', async (req, res) => {
     });
     const data = await response.json();
     res.status(response.status).json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── A. DUIE PYLE TRACKING PROXY ───────────────────────────────
+// GET /pyle?token=...&type=0&value=716925383
+// type: 0=PRO, 1=BOL (requires &zip=origin-zip), 2=partner PRO (requires &partner=SCAC), 4=PO (requires &zip=dest-zip)
+app.get('/pyle', async (req, res) => {
+  if (req.query.token !== ACCESS_TOKEN) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { type, value, zip, partner } = req.query;
+  if (!value) return res.status(400).json({ error: 'value required' });
+
+  let url = `https://api.aduiepyle.com/2/shipment/status?user=${encodeURIComponent(PYLE_USER)}&type=${type || '0'}&value=${encodeURIComponent(value)}`;
+  if (zip) url += `&zip=${encodeURIComponent(zip)}`;
+  if (partner) url += `&partner=${encodeURIComponent(partner)}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/xml, text/xml, */*',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    });
+    const text = await response.text();
+    res.set('Content-Type', response.headers.get('content-type') || 'application/xml');
+    res.status(response.status).send(text);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
