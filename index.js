@@ -308,14 +308,6 @@ app.post('/numark', async (req, res) => {
           <PASSWORD>BROKER</PASSWORD>
         </SECURITYINFO>
         <PRONUMBER>${proNumber}</PRONUMBER>
-        <CURRENTSTATUS>
-          <CONSIGNEE><ADDRESS1/><ADDRESS2/><CITY/><NAME/><STATE/><ZIP/></CONSIGNEE>
-          <DELIVERYDATE/><ERRORCODE/><ESTDELIVERYDATE/><SHIPDATE/>
-          <SHIPPER><ADDRESS1/><ADDRESS2/><CITY/><NAME/><STATE/><ZIP/></SHIPPER>
-          <SIGNEDBY/><STATUS/>
-        </CURRENTSTATUS>
-        <HISTORY><DATE/><DESCRIPTION/><LOCATION/><TIME/></HISTORY>
-        <HISTORYCOUNT>0</HISTORYCOUNT>
       </arg0>
     </tns:tracktrace>
   </soapenv:Body>
