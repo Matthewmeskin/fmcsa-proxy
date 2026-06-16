@@ -298,7 +298,7 @@ app.post('/numark', async (req, res) => {
   const soapBody = `<?xml version="1.0" encoding="utf-8"?>
 <soapenv:Envelope
   xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-  xmlns:tns="http://ttrackapi.wsbeans.iseries/">
+  xmlns:tns="http://ttrackapi.wsbeans.iseries/xsd">
   <soapenv:Header/>
   <soapenv:Body>
     <tns:tracktrace>
